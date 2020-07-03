@@ -1,10 +1,12 @@
 require('./models/User');
+require('./models/Track');
 
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const path = require('path');
-const authRouter = require('./routes/authRoutes');
+const authRouter = require('./routes/authRouter');
+const trackRouter = require('./routes/trackRouter');
+
 
 const app = express();
 
@@ -23,15 +25,11 @@ mongoose.connection.on('error', (err) => {
     console.log('Error connecting to mongo', err);
 });
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.set('views', __dirname + '/public/views');
-app.set('view engine', 'ejs');
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended : true}));
 
-app.use('/', authRouter);
+app.use(authRouter);
+app.use(trackRouter);
 
 app.listen(3000, (err) => {
     if(err) throw err;

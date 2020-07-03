@@ -1,13 +1,14 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
-// Note that jwt part is not done so far
+const requireAuth = require('../middlewares/requireAuth');
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
-    res.send('Hi there!');
+router.get('/', requireAuth, (req, res) => {
+    res.send(`Your emal : ${req.user.email}`);
 })
 
 router.get('/signup', (req, res) => {
@@ -20,8 +21,10 @@ router.post('/signup', async (req, res) => {
     try {
         const user = new User({ email, password });
         await user.save();
+
+        const token = jwt.sign({ userId : user._id }, 'MY_SECRET_KEY');
     
-        res.send('You created a new user');
+        res.json({ token });
     } catch (err) {
         return res.status(422).send(err.message);
     }
@@ -40,7 +43,7 @@ router.post('/signin', async (req, res) => {
     try {
         await user.comparePassword(password);
         const token = jwt.sign({ userId : user._id }, 'MY_SECRET_KEY');
-        res.send({ token });
+        res.json({ token });
     } catch(err) {
         return res.status(404).send({ error : 'Invalid password or email' });
     }
